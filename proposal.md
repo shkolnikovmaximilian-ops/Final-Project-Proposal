@@ -1,7 +1,7 @@
 # Re-Usable Blender Rig UI
 
 ## Repository
-<Link to your project's public GitHub respository>
+https://github.com/shkolnikovmaximilian-ops/Final-Project-Proposal.git
 
 ## Description
 This program will create an easy-to-understand and re-usable rig UI to make animation easier for animators
