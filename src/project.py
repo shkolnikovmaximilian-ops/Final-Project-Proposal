@@ -193,3 +193,66 @@ class MALE_PT_arm_props(bpy.types.Panel):
         row = split.row(align=True)
         row.prop(bone, '["HAND_IK_PARENT.R"]', text = "", slider=True)
         
+        # This Panel will express Leg Properites
+class MALE_PT_leg_props(bpy.types.Panel):
+    bl_label = "Leg Properties" 
+    bl_idname = "MALE_PT_Leg_props"
+    bl_space_type = 'VIEW_3D'
+    bl_parent_id = "MALE_PT_customprops" 
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'} 
+    
+    def draw(self, context):
+        
+        
+        arm = context.active_object
+        bone = arm.pose.bones["PROPERTIES"]
+    
+        layout = self.layout
+        split_size = 0.7
+          
+        box = layout.box()
+        col = box.column(align=True)
+        row = col.row()              
+        split = row.split(align=True, factor=split_size)
+        row = split.row(align=True)        
+        row.label(text='Left Leg - IK to FK', translate=False)
+        row = split.row(align=True)
+        row.prop(bone, '["LEG_IK-FK.L"]', text = "", slider=True)
+        
+        row = col.row() 
+        split = row.split(align=True, factor=split_size)
+        row = split.row(align=True)
+        row.label(text='Left Leg - Rot Follow', translate=False)
+        row = split.row(align=True)
+        row.prop(bone, '["LEG_ROT_FOLLOW.L"]', text = "", slider=True)
+        
+        row = col.row() 
+        split = row.split(align=True, factor=split_size)
+        row = split.row(align=True)
+        row.label(text='Left Leg IK Parent', translate=False)
+        row = split.row(align=True)
+        row.prop(bone, '["LEG_IK_PARENT.L"]', text = "", slider=True)
+         
+        box = layout.box()
+        col = box.column(align=True)
+        row = col.row()              
+        split = row.split(align=True, factor=split_size)
+        row = split.row(align=True)        
+        row.label(text='Right Leg - IK to FK', translate=False)
+        row = split.row(align=True)
+        row.prop(bone, '["LEG_IK-FK.R"]', text = "", slider=True)
+        
+        row = col.row() 
+        split = row.split(align=True, factor=split_size)
+        row = split.row(align=True)
+        row.label(text='Right Leg - Rot Follow', translate=False)
+        row = split.row(align=True)
+        row.prop(bone, '["LEG_ROT_FOLLOW.R"]', text = "", slider=True)
+        
+        row = col.row() 
+        split = row.split(align=True, factor=split_size)
+        row = split.row(align=True)
+        row.label(text='Right Leg IK Parent', translate=False)
+        row = split.row(align=True)
+        row.prop(bone, '["LEG_IK_PARENT.R"]', text = "", slider=True)
