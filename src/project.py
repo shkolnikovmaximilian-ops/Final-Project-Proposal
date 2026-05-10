@@ -282,7 +282,7 @@ class MALE_PT_col_props(bpy.types.Panel):
         row.prop(bone, '["Color"]', text = "Color", slider=True)
 
 
-# This Panel will express the color wheel functionality
+# This Panel will express the mesh visibility functionality
         class MALE_PT_vis_props(bpy.types.Panel):
     bl_label = "Visibility Properties" 
     bl_idname = "MALE_PT_vis_props"
@@ -333,3 +333,308 @@ class MALE_PT_col_props(bpy.types.Panel):
         row.label(text='Torso', translate=False)             
         row.prop(mask_torso, 'show_viewport', text="", icon='HIDE_ON', invert_checkbox=True, emboss=False)
         
+
+def get_matrix(armature, source_bone, target_bone):
+    source_bone_rest_matrix = source_bone.bone.matrix_local
+    target_bone_rest_matrix = target_bone.bone.matrix_local
+
+    offset_matrix = source_bone_rest_matrix.inverted() @ target_bone_rest_matrix
+
+    source_world_matrix = source_bone.matrix
+
+    matrix_final =  source_world_matrix @ offset_matrix
+    
+    return matrix_final
+
+
+
+class MALE_OT_ik_fk_arm(bpy.types.Operator):
+    bl_idname = "male.ik_fk_arm"
+    bl_label = ""
+    bl_description = "Snap IK > FK"
+    bl_options = {'UNDO', 'INTERNAL'}
+    
+    side: bpy.props.StringProperty(name="'L' or 'R'")
+
+    @classmethod
+    def poll(self, context):
+        try:
+            return (context.active_object.data.get("rig_id") == rig_id)
+        except (AttributeError, KeyError, TypeError):
+            return False
+    
+    def execute(self, context):
+        side = self.side
+        armature = bpy.context.active_object
+        pose_bones = armature.pose.bones
+        properties = pose_bones['PROPERTIES']
+        
+        fk_hand = pose_bones[f'HAND_FK.{side}']
+        fk_pole = pose_bones[f'MCH_IK_FK_ARM_POLE_IK.{side}']
+                
+        ik_hand = pose_bones[f'HAND_IK.{side}']
+        ik_pole = pose_bones[f'ARM_POLE_IK.{side}']
+                
+        select_set = (ik_hand, ik_pole, properties) 
+        
+        hand_matrix = get_matrix(armature, fk_hand, ik_hand )
+        pole_matrix = get_matrix(armature, fk_pole, ik_pole )
+        
+        ik_hand.matrix = hand_matrix
+        bpy.context.view_layer.update()        
+        ik_pole.matrix = pole_matrix
+        bpy.context.view_layer.update()
+        
+        properties[f'ARM_FK_IK.{side}'] = 1        
+        
+        bpy.ops.pose.select_all(action='DESELECT')
+        
+        for pbone in select_set:
+            armature.data.bones.active = pbone.bone
+
+            if bpy.context.scene.tool_settings.use_keyframe_insert_auto:
+                try:
+                    bpy.ops.anim.keyframe_insert_menu(type='Available')
+                except RuntimeError:
+                    self.report({'WARNING'}, f'{pbone.name} has no active keyframes')
+                    pass        
+        
+        return {'FINISHED'}      
+
+
+class MALE_OT_fk_ik_arm(bpy.types.Operator):
+    bl_idname = "male.fk_ik_arm"
+    bl_label = ""
+    bl_description = "Snap IK > FK"
+    bl_options = {'UNDO', 'INTERNAL'}
+    
+    side: bpy.props.StringProperty(name="'L' or 'R'")
+
+    @classmethod
+    def poll(self, context):
+        try:
+            return (context.active_object.data.get("rig_id") == rig_id)
+        except (AttributeError, KeyError, TypeError):
+            return False
+    
+    def execute(self, context):
+        side = self.side
+        armature = bpy.context.active_object
+        pose_bones = armature.pose.bones
+        properties = pose_bones['PROPERTIES']
+        
+
+        fk_hand = pose_bones[f'HAND_FK.{side}']
+        fk_forearm = pose_bones[f'FOREARM_FK.{side}']
+        fk_arm = pose_bones[f'ARM_FK.{side}']
+                
+        ik_hand = pose_bones[f'HAND_IK.{side}']
+        ik_forearm = pose_bones[f'MCH_FOREARM_IK.{side}']
+        ik_arm = pose_bones[f'MCH_ARM_IK.{side}']
+                
+        select_set = (fk_hand, fk_forearm, fk_arm, properties) 
+        
+        hand_matrix = get_matrix(armature, ik_hand, fk_hand )
+        forearm_matrix = get_matrix(armature, ik_forearm, fk_forearm )
+        arm_matrix = get_matrix(armature, ik_arm, fk_arm )
+
+        fk_arm.matrix = arm_matrix
+        bpy.context.view_layer.update()
+        fk_forearm.matrix = forearm_matrix
+        bpy.context.view_layer.update()
+        fk_hand.matrix = hand_matrix
+        bpy.context.view_layer.update()        
+                
+        
+
+        properties[f'ARM_FK_IK.{side}'] = 1        
+        
+        bpy.ops.pose.select_all(action='DESELECT')
+        
+        for pbone in select_set:
+            armature.data.bones.active = pbone.bone
+
+            if bpy.context.scene.tool_settings.use_keyframe_insert_auto:
+                try:
+                    bpy.ops.anim.keyframe_insert_menu(type='Available')
+                except RuntimeError:
+                    self.report({'WARNING'}, f'{pbone.name} has no active keyframes')
+                    pass        
+        
+        return {'FINISHED'}      
+
+
+class MALE_OT_ik_fk_leg(bpy.types.Operator):
+    bl_idname = "male.ik_fk_leg"
+    bl_label = ""
+    bl_description = "Snap IK > FK"
+    bl_options = {'UNDO', 'INTERNAL'}
+    
+    side: bpy.props.StringProperty(name="'L' or 'R'")
+
+    @classmethod
+    def poll(self, context):
+        try:
+            return (context.active_object.data.get("rig_id") == rig_id)
+        except (AttributeError, KeyError, TypeError):
+            return False
+    
+    def execute(self, context):
+        side = self.side
+        armature = bpy.context.active_object
+        pose_bones = armature.pose.bones
+        properties = pose_bones['PROPERTIES']
+        
+        fk_foot = pose_bones[f'MCH_IK_FK_FOOT_IK_MASTER.{side}']
+        fk_pole = pose_bones[f'MCH_IK_FK_LEG_POLE_IK.{side}']
+                
+        ik_foot = pose_bones[f'FOOT_IK_MASTER.{side}']
+        ik_pole = pose_bones[f'MCH_IK_FK_LEG_POLE_IK.{side}']
+                
+        select_set = (ik_foot, ik_pole, properties) 
+        
+        foot_matrix = get_matrix(armature, fk_foot, ik_foot )
+        pole_matrix = get_matrix(armature, fk_pole, ik_pole )
+        
+        ik_foot.matrix = foot_matrix
+        bpy.context.view_layer.update()        
+        ik_pole.matrix = pole_matrix
+        bpy.context.view_layer.update()
+        
+        properties[f'LEG_FK_IK.{side}'] = 0        
+        
+        bpy.ops.pose.select_all(action='DESELECT')
+        
+        for pbone in select_set:
+            armature.data.bones.active = pbone.bone
+
+            if bpy.context.scene.tool_settings.use_keyframe_insert_auto:
+                try:
+                    bpy.ops.anim.keyframe_insert_menu(type='Available')
+                except RuntimeError:
+                    self.report({'WARNING'}, f'{pbone.name} has no active keyframes')
+                    pass        
+        
+        return {'FINISHED'}      
+
+
+
+class MALE_OT_fk_ik_leg(bpy.types.Operator):
+    bl_idname = "male.fk_ik_leg"
+    bl_label = ""
+    bl_description = "Snap IK > FK"
+    bl_options = {'UNDO', 'INTERNAL'}
+    
+    side: bpy.props.StringProperty(name="'L' or 'R'")
+
+    @classmethod
+    def poll(self, context):
+        try:
+            return (context.active_object.data.get("rig_id") == rig_id)
+        except (AttributeError, KeyError, TypeError):
+            return False
+    
+    def execute(self, context):
+        side = self.side
+        armature = bpy.context.active_object
+        pose_bones = armature.pose.bones
+        properties = pose_bones['PROPERTIES']
+        
+        fk_foot = pose_bones[f'FOOT_FK.{side}']
+        fk_shin = pose_bones[f'SHIN_FK.{side}']
+        fk_thigh = pose_bones[f'THIGH_FK.{side}']
+                
+        ik_foot = pose_bones[f'FOOT_IK_MASTER.{side}']
+        ik_shin = pose_bones[f'MCH_IK_SHIN.{side}']
+        ik_thigh = pose_bones[f'MCH_IK_THIGH.{side}']
+                
+        select_set = (fk_foot, fk_shin, fk_thigh, properties) 
+        
+        foot_matrix = get_matrix(armature, ik_foot, fk_foot )
+        shin_matrix = get_matrix(armature, ik_shin, fk_shin )
+        thigh_matrix = get_matrix(armature, ik_thigh, fk_thigh )
+
+        fk_thigh.matrix = thigh_matrix
+        bpy.context.view_layer.update()
+        fk_shin.matrix = shin_matrix
+        bpy.context.view_layer.update()
+        fk_foot.matrix = foot_matrix
+        bpy.context.view_layer.update()        
+                
+        
+        properties[f'LEG_FK_IK.{side}'] = 1        
+        
+        bpy.ops.pose.select_all(action='DESELECT')
+        
+        for pbone in select_set:
+            armature.data.bones.active = pbone.bone
+
+            if bpy.context.scene.tool_settings.use_keyframe_insert_auto:
+                try:
+                    bpy.ops.anim.keyframe_insert_menu(type='Available')
+                except RuntimeError:
+                    self.report({'WARNING'}, f'{pbone.name} has no active keyframes')
+                    pass        
+        
+        return {'FINISHED'}      
+
+
+
+class MALE_PT_snap_panel(bpy.types.Panel):
+    bl_category = 'Item'
+    bl_label = "Snap Utilities"
+    bl_idname = "MALE_PT_snap_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(self, context):
+        try:
+            return (context.active_object.data.get("rig_id") == rig_id)
+        except (AttributeError, KeyError, TypeError):
+            return False
+        
+    def draw(self, context):
+        layout = self.layout
+        #box = layout.box()
+        col = layout.column(align=True)
+        row = col.row()
+        row.operator("MALE.ik_fk_arm", emboss=True, text="Arm L IK > FK", icon='SNAP_ON').side = 'L'
+        row.operator("MALE.ik_fk_arm", emboss=True, text="Arm R IK > FK", icon='SNAP_ON').side = 'R'
+        
+        row = col.row()
+        row.operator("MALE.fk_ik_arm", emboss=True, text="Arm L FK > IK", icon='SNAP_ON').side = 'L'
+        row.operator("MALE.fk_ik_arm", emboss=True, text="Arm R FK > IK", icon='SNAP_ON').side = 'R'
+        
+        col = layout.column(align=True)
+        row = col.row()
+        row.operator("MALE.ik_fk_leg", emboss=True, text="Leg L IK > FK", icon='SNAP_ON').side = 'L'
+        row.operator("MALE.ik_fk_leg", emboss=True, text="Leg R IK > FK", icon='SNAP_ON').side = 'R'
+        
+        row = col.row()
+        row.operator("MALE.fk_ik_leg", emboss=True, text="Leg L FK > IK", icon='SNAP_ON').side = 'L'
+        row.operator("MALE.fk_ik_leg", emboss=True, text="Leg R FK > IK", icon='SNAP_ON').side = 'R'
+                                            
+  
+                                            
+classes = (MALE_PT_rigui,
+           MALE_PT_customprops,
+           MALE_PT_vis_props,
+           MALE_PT_head_props,
+           MALE_PT_arm_props,
+           MALE_PT_leg_props,
+           MALE_PT_col_props,
+           MALE_PT_snap_panel,
+           MALE_OT_ik_fk_arm,
+           MALE_OT_fk_ik_arm,
+           MALE_OT_ik_fk_leg,
+           MALE_OT_fk_ik_leg,)
+             
+            
+            
+
+register, unregister = bpy.utils.register_classes_factory(classes)
+
+if __name__ == "__main__":
+    register()
