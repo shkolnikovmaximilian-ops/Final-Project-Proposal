@@ -75,3 +75,57 @@ class MALE_PT_rigui(bpy.types.Panel):
         row = col.row(align = True)
         row.prop(collection["LEFT_LEG_TWEAK"], 'is_visible', toggle=True, text='LEFT_LEG_TWEAK')
         row.prop(collection["RIGHT_LEG_TWEAK"], 'is_visible', toggle=True, text='RIGHT_LEG_TWEAK') 
+
+
+        class MALE_PT_customprops(bpy.types.Panel):
+    bl_category = 'Item'
+    bl_label = "Rig Properties"
+    bl_idname = "MALE_PT_customprops"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(self, context):
+        try:
+            return (context.active_object.data.get("rig_id") == rig_id)
+        except (AttributeError, KeyError, TypeError):
+            return False
+        
+    def draw(self, context):
+        layout = self.layout
+
+# This Panel will express Head Properites
+class MALE_PT_head_props(bpy.types.Panel):
+    bl_label = "Head Properties" 
+    bl_idname = "MALE_PT_head_props"
+    bl_space_type = 'VIEW_3D'
+    bl_parent_id = "MALE_PT_customprops" 
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'} 
+    
+    def draw(self, context):
+        
+        arm = context.active_object
+        bone = arm.pose.bones["PROPERTIES"]
+        
+        layout = self.layout
+        split_size = 0.7
+        
+        box = layout.box()
+        col = box.column(align=True)
+        row = col.row()              
+        split = row.split(align=True, factor=split_size)
+        row = split.row(align=True)        
+        row.label(text='Head Rot Follow', translate=False)
+        row = split.row(align=True)
+        row.prop(bone, '["HEAD_ROT_FOLLOW"]', text = "", slider=True)
+        
+        row = col.row() 
+        split = row.split(align=True, factor=split_size)
+        row = split.row(align=True)
+        row.label(text='Neck Rot Follow', translate=False)
+        row = split.row(align=True)
+        row.prop(bone, '["NECK_FOLLOW"]', text = "", slider=True)
+        
+        
