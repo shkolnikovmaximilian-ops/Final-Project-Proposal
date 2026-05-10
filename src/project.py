@@ -256,3 +256,80 @@ class MALE_PT_leg_props(bpy.types.Panel):
         row.label(text='Right Leg IK Parent', translate=False)
         row = split.row(align=True)
         row.prop(bone, '["LEG_IK_PARENT.R"]', text = "", slider=True)
+
+# This Panel will express the color wheel functionality
+class MALE_PT_col_props(bpy.types.Panel):
+    bl_label = "Mesh Color Properties" 
+    bl_idname = "MALE_PT_col_props"
+    bl_space_type = 'VIEW_3D'
+    bl_parent_id = "MALE_PT_customprops" 
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        
+        arm = context.active_object
+        bone = arm.pose.bones["PROPERTIES"]
+        layout = self.layout
+        box = layout.box()
+        col = box.column(align=True)
+        row = col.row() 
+        split_size = 0.7
+        split = row.split(align=True, factor=split_size)
+        row = split.row(align=True)
+        row.label(text='Mesh Color', translate=False)
+        row = split.row(align=True)
+        row.prop(bone, '["Color"]', text = "Color", slider=True)
+
+
+# This Panel will express the color wheel functionality
+        class MALE_PT_vis_props(bpy.types.Panel):
+    bl_label = "Visibility Properties" 
+    bl_idname = "MALE_PT_vis_props"
+    bl_space_type = 'VIEW_3D'
+    bl_category = 'Item'
+    bl_parent_id = "MALE_PT_customprops"
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+
+        my_object =  bpy.data.objects['Himulation']
+               
+    
+        mask_left_arm = my_object.modifiers["MASK_LEFT_ARM"]
+        mask_left_leg = my_object.modifiers["MASK_LEFT_LEG"]
+        mask_right_arm = my_object.modifiers["MASK_RIGHT_ARM"]
+        mask_right_leg = my_object.modifiers["MASK_RIGHT_LEG"]
+        mask_torso = my_object.modifiers["MASK_TORSO"]
+        
+        
+        layout = self.layout
+        layout.use_property_split = False
+        layout.use_property_decorate = False 
+
+
+        box = layout.box()
+        col = box.column(align=True)
+        row = col.row() 
+        row.label(text='Left Arm', translate=False)   
+        row.prop(mask_left_arm, 'show_viewport', text="", icon='HIDE_ON', invert_checkbox=True, emboss=False)
+        
+        row = col.row(align = True) 
+        row.label(text='Right Arm', translate=False)             
+        row.prop(mask_right_arm, 'show_viewport', text="", icon='HIDE_ON', invert_checkbox=True, emboss=False)
+        
+        row = col.row(align = True)  
+        row.label(text='Left Leg', translate=False)             
+        row.prop(mask_left_leg, 'show_viewport', text="", icon='HIDE_ON', invert_checkbox=True, emboss=False)
+      
+        row = col.row(align = True)  
+        row.label(text='Right Leg', translate=False)             
+        row.prop(mask_right_leg, 'show_viewport', text="", icon='HIDE_ON', invert_checkbox=True, emboss=False)  
+       
+        row = col.row(align = True)  
+        row.label(text='Torso', translate=False)             
+        row.prop(mask_torso, 'show_viewport', text="", icon='HIDE_ON', invert_checkbox=True, emboss=False)
+        
